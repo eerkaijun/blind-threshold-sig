@@ -84,6 +84,7 @@ impl FrostSigner {
 
 #[derive(Debug, Clone)]
 pub struct Frost {
+    pub generator: Element, // generator of the group
     pub signers: Vec<FrostSigner>,
     pub group_pk: Element, // public key of the group
 }
@@ -134,7 +135,11 @@ impl Frost {
             })
             .collect();
 
-        Frost { signers, group_pk }
+        Frost {
+            generator,
+            signers,
+            group_pk,
+        }
     }
 
     pub fn update_binding_factors(&mut self, binding_factors: Vec<BindingFactor>) {
@@ -169,5 +174,10 @@ impl Frost {
         };
     }
 
-    pub fn verify() {}
+    pub fn verify(&self, signature: SchnorrSignature, challenge: ScalarField) -> bool {
+        let lhs = self.generator * signature.s; // g^z
+        let rhs = signature.R + self.group_pk * challenge;
+
+        lhs == rhs
+    }
 }

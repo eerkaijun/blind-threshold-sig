@@ -66,4 +66,6 @@ fn main() {
         frost_protocol.signature_aggregate(commitments, message.to_vec(), signature_shares);
 
     // Step6: The coordinator verifies the signature
+    let verification_result = frost_protocol.verify(signature, challenge);
+    println!("Signature verification result: {}", verification_result);
 }
