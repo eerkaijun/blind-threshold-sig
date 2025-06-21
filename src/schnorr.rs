@@ -1,7 +1,5 @@
-use ark_bls12_381::{G1Projective as G, Fr as ScalarField};
+use ark_ed25519::{EdwardsProjective as G, Fr as ScalarField};
 use ark_ff::{AdditiveGroup, Field, UniformRand};
-
-// TODO: better to use trait for G and ScalarField instead of concrete types, to allow easy substitution of different curves
 
 /// A Schnorr signature contains a point R which is commitment of nonce k
 /// R = g^k where g is the generator of the group,

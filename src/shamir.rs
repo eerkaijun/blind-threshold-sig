@@ -1,7 +1,12 @@
-use ark_bls12_381::Fr as ScalarField;
+use ark_ed25519::Fr as ScalarField;
 use ark_ff::{AdditiveGroup, Field, UniformRand};
 
-pub fn shamir_split(secret: ScalarField, t: usize, n: usize) -> Vec<(ScalarField, ScalarField)> {
+pub struct ShamirShare {
+    x: ScalarField, // x-coordinate of the share
+    y: ScalarField, // y-coordinate of the share
+}
+
+pub fn shamir_split(secret: ScalarField, t: usize, n: usize) -> Vec<ShamirShare> {
     assert!(t <= n, "threshold cannot exceed number of shares");
     assert!(t >= 2, "threshold must be at least 2");
 
@@ -20,6 +25,43 @@ pub fn shamir_split(secret: ScalarField, t: usize, n: usize) -> Vec<(ScalarField
         for (j, coeff) in coeffs.iter().enumerate() {
             y += *coeff * x.pow([j as u64]);
         }
-        (x, y)
+        ShamirShare {
+            x,
+            y,
+        }
     }).collect()
+}
+
+pub fn shamir_reconstruct(shares: &[ShamirShare]) -> ScalarField {
+    let mut secret = ScalarField::ZERO;
+
+    for (i, ShamirShare { x: x_i, y: y_i }) in shares.iter().enumerate() {
+        let mut numerator = ScalarField::ONE;
+        let mut denominator = ScalarField::ONE;
+
+        for (j, ShamirShare { x: x_j, y: y_j }) in shares.iter().enumerate() {
+            if i != j {
+                numerator *= ScalarField::ZERO - x_j; // x_j is negated since x = 0
+                denominator *= x_i - x_j;
+            }
+        }
+
+        let lagrange_coeff = numerator * denominator.inverse().unwrap(); // Lagrange basis L_i(0)
+        secret += y_i * &lagrange_coeff;
+    }
+
+    secret
+}
+
+#[test]
+fn test_shamir_split_reconstruct() {
+    let secret = ScalarField::from(42u64);
+    let t = 3; // threshold
+    let n = 5; // total shares
+    let shares = shamir_split(secret, t, n);
+    assert_eq!(shares.len(), n);
+    
+    // Reconstruct the secret using the first t shares
+    let reconstructed_secret = shamir_reconstruct(&shares[..3]);
+    assert_eq!(reconstructed_secret, secret);
 }
