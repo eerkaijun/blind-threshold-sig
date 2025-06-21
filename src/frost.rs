@@ -46,7 +46,8 @@ impl FrostSigner {
         let d = nonce_generate(x);
         let D = g * d;
 
-        // generate a binding nonce e and its commitment E
+        // generate a binding nonce e and its commitment E.
+        // In the suggested rough draft, we want the `NoncePair` to be (D, 0) for blinding.
         let mut e = ScalarField::ZERO;
         if !is_blind {
             e = nonce_generate(x);
