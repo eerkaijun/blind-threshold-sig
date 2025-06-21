@@ -4,6 +4,9 @@
 
 Threshold signature has been widely adopted, though a downside is that the signers have full visibility into the message they are signing, which for certain uses cases leak privacy of the message owner. In this project, we implement a blind threshold signature scheme to enable secure and private social recovery mechanisms. Traditional social recovery relies on trusted signers who know the user's address or identity, posing privacy risks and potential collusion threats. Our scheme allows a user to distribute secret shares to a group of guardians, who can collectively help recover a wallet without ever learning the user's actual address or messages they are signing. By leveraging blindness and threshold security, we ensure that no single party can compromise the user’s privacy, and recovery is only possible when a predefined subset of guardians agree to sign.
 
+![](./images/1.jpg)
+![](./images/2.jpg)
+
 ### Overview
 
 We use FROST (Flexible Round-Optimized Schnorr Threshold Signatures), a threshold signature scheme based on Schnorr signatures that allows a group of n participants to collaboratively produce a valid Schnorr signature using only a threshold t of their secret shares. It requires two rounds of communication: one for nonce commitment exchange, and one for signing.
