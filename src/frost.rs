@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use ark_ed25519::Fr as ScalarField;
 use ark_ff::{AdditiveGroup, Field};
 use ark_serialize::CanonicalSerialize;
@@ -18,10 +20,12 @@ fn nonce_generate(_secret: ScalarField) -> ScalarField {
     unimplemented!();
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct NonZeroScalar(ScalarField);
 
 type NonceCommitment = ark_ed25519::EdwardsProjective;
+
+type BindingFactor = (NonZeroScalar, ScalarField);
 
 /// A Commitment is a tuple of (NonZeroScalar, NonceCommitment, NonceCommitment)
 type Commitment = (NonZeroScalar, NonceCommitment, NonceCommitment);
@@ -106,4 +110,27 @@ fn encode_group_commitment_list(commitment_list: &[Commitment]) -> Vec<u8> {
     }
 
     return encoded;
+}
+
+/// Extracts and returns a list of identifiers `Vec<NonZeroScalar>` from a `commitment list`.
+fn participants_from_commitment_list(commitment_list: &[Commitment]) -> Vec<NonZeroScalar> {
+    let mut identifiers: Vec<NonZeroScalar> = Vec::with_capacity(commitment_list.len());
+    for (i, _, _) in commitment_list.iter() {
+        identifiers.push(*i);
+    }
+
+    return identifiers;
+}
+
+/// Extracts and returns a `BindingFactor` from a `Vec<BindingFactor>` given a `NonZeroScalar`
+/// identifier.
+fn binding_factor_for_participant(
+    binding_factor_list: Vec<BindingFactor>,
+    identifier: NonZeroScalar,
+) -> ScalarField {
+    return binding_factor_list
+        .iter()
+        .find(|(id, bf)| *id == identifier)
+        .unwrap()
+        .1;
 }
