@@ -181,6 +181,7 @@ dependencies = [
  "ark-ec",
  "ark-ed25519",
  "ark-ff",
+ "ark-serialize",
  "ark-std",
  "rand 0.9.1",
 ]
