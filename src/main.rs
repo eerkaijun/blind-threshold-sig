@@ -1,8 +1,12 @@
 use ark_ed25519::Fr as ScalarField;
+use ark_ff::Field;
 
 use crate::{
-    frost::{Frost, FrostSigner},
-    helper::{Commitment, NonZeroScalar, compute_binding_factors},
+    frost::Frost,
+    helper::{
+        Commitment, NonZeroScalar, compute_binding_factors, compute_challenge,
+        compute_group_commitment,
+    },
 };
 
 pub mod ciphersuite;
@@ -37,5 +41,29 @@ fn main() {
         compute_binding_factors(frost_protocol.group_pk, &commitments, message.to_vec());
 
     // Step3: Each signer obtains its own binding factor rho
-    frost_protocol.update_binding_factors(binding_factors);
+    frost_protocol.update_binding_factors(binding_factors.clone());
+
+    // Step4: Each signer generates a signature share using its secret share, nonces and binding factor
+    let x_coordinates: Vec<NonZeroScalar> = frost_protocol
+        .signers
+        .iter()
+        .map(|signer| NonZeroScalar::new(signer.get_identifier()))
+        .collect();
+    let group_commitment = compute_group_commitment(&commitments, binding_factors);
+    let hash_output =
+        compute_challenge(group_commitment, frost_protocol.group_pk, message.to_vec());
+    let challenge =
+        ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
+    let mut signature_shares = Vec::new();
+    for signer in frost_protocol.clone().signers {
+        let sig_share = signer.sign(ScalarField::from(challenge), &x_coordinates);
+        signature_shares.push(sig_share);
+    }
+
+    // Step5: The coordinator aggregates the signature shares to produce a signature
+    // TODO: we only need to aggregate threshold number of shares, not all
+    let signature =
+        frost_protocol.signature_aggregate(commitments, message.to_vec(), signature_shares);
+
+    // Step6: The coordinator verifies the signature
 }

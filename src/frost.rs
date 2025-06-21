@@ -149,12 +149,12 @@ impl Frost {
 
     /// Coordinator aggregates each share to produce a final `SchnorrSignature`.
     pub fn signature_aggregate(
+        &self,
         commitment_list: Vec<Commitment>,
         msg: Vec<u8>,
-        group_pk: Element,
         sig_shares: Vec<ScalarField>,
     ) -> SchnorrSignature {
-        let binding_factor_list = compute_binding_factors(group_pk, &commitment_list, msg);
+        let binding_factor_list = compute_binding_factors(self.group_pk, &commitment_list, msg);
         let group_commitment = compute_group_commitment(&commitment_list, binding_factor_list);
 
         let mut z = ScalarField::ZERO;
