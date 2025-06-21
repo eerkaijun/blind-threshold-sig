@@ -4,13 +4,15 @@ use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
     helper::{
-        BindingFactor, Commitment, NonZeroScalar, compute_binding_factors,
-        compute_group_commitment, derive_interpolating_value, nonce_generate,
+        BindingFactor, Commitment, NonZeroScalar, binding_factor_for_participant,
+        compute_binding_factors, compute_group_commitment, derive_interpolating_value,
+        nonce_generate,
     },
     schnorr::SchnorrSignature,
     shamir::shamir_split,
 };
 
+#[derive(Debug, Copy, Clone)]
 pub struct NonceCommitment {
     pub D: Element, // commitment for hiding nonce
     pub E: Element, // commitment for binding nonce
@@ -18,6 +20,7 @@ pub struct NonceCommitment {
 
 /// Each signer has a secret share and can generate a signature share
 /// Each signer will generate a hiding nonce and a binding nonce
+#[derive(Debug, Copy, Clone)]
 pub struct FrostSigner {
     identifier: ScalarField, // unique identifier for the signer
     index: usize,            // index in the list of signers
@@ -58,9 +61,8 @@ impl FrostSigner {
         }
     }
 
-    pub fn store_rho(&mut self, binding_factors: Vec<BindingFactor>) {
-        let (_, rho) = binding_factors[self.index];
-        self.rho = rho;
+    pub fn store_rho(&mut self, binding_factor: ScalarField) {
+        self.rho = binding_factor;
     }
 
     pub fn sign(&self, challenge: ScalarField, x_coordinates: &[NonZeroScalar]) -> ScalarField {
@@ -71,11 +73,16 @@ impl FrostSigner {
         self.d + (self.rho * self.e) + (lambda * self.x * challenge)
     }
 
+    pub fn get_identifier(&self) -> ScalarField {
+        self.identifier
+    }
+
     pub fn get_nonce_commitment(&self) -> &NonceCommitment {
         &self.commitment
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Frost {
     pub signers: Vec<FrostSigner>,
     pub group_pk: Element, // public key of the group
@@ -128,6 +135,16 @@ impl Frost {
             .collect();
 
         Frost { signers, group_pk }
+    }
+
+    pub fn update_binding_factors(&mut self, binding_factors: Vec<BindingFactor>) {
+        for signer in self.signers.iter_mut() {
+            let binding_factor = binding_factor_for_participant(
+                &binding_factors,
+                NonZeroScalar::new(signer.get_identifier()),
+            );
+            signer.store_rho(binding_factor);
+        }
     }
 
     /// Coordinator aggregates each share to produce a final `SchnorrSignature`.
