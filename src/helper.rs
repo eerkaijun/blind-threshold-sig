@@ -27,7 +27,7 @@ pub type Commitment = (NonZeroScalar, Element, Element);
 
 pub fn nonce_generate(secret: ScalarField) -> ScalarField {
     // Generate a 32-byte random number
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut random_bytes = [0u8; 32];
     rng.fill_bytes(&mut random_bytes);
 
@@ -110,16 +110,6 @@ fn encode_group_commitment_list(commitment_list: &[Commitment]) -> Vec<u8> {
     }
 
     encoded
-}
-
-/// Extracts and returns a list of identifiers `Vec<NonZeroScalar>` from a `commitment list`.
-fn participants_from_commitment_list(commitment_list: &[Commitment]) -> Vec<NonZeroScalar> {
-    let mut identifiers: Vec<NonZeroScalar> = Vec::with_capacity(commitment_list.len());
-    for (i, _, _) in commitment_list.iter() {
-        identifiers.push(*i);
-    }
-
-    identifiers
 }
 
 /// Extracts and returns a `BindingFactor` from a `Vec<BindingFactor>` given a `NonZeroScalar`

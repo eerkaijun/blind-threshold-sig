@@ -15,12 +15,14 @@ pub struct SchnorrSignature {
     pub s: ScalarField,
 }
 
+#[allow(dead_code)]
 struct Signer {
     pub x: ScalarField, // private key
     pub P: G,           // public key
     pub g: G,           // generator of the group (P = g^x)
 }
 
+#[allow(dead_code)]
 impl Signer {
     pub fn new(x: ScalarField) -> Self {
         // TODO: i think it's better to use thread_rng and store in Signer struct
@@ -56,28 +58,24 @@ impl Signer {
     }
 }
 
-struct Verifier {}
+pub fn schnorr_verify(signature: &SchnorrSignature, message: &[u8], P: G, g: G) -> bool {
+    // compute the hash H(R || P || m)
+    let mut hasher = Sha512::new();
+    hasher.update(signature.R.into_affine().to_string().as_bytes());
+    hasher.update(P.into_affine().to_string().as_bytes());
+    hasher.update(message);
+    let hash_output = hasher.finalize_reset().to_vec();
+    let hash_output =
+        ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
 
-impl Verifier {
-    pub fn verify(signature: &SchnorrSignature, message: &[u8], P: G, g: G) -> bool {
-        // compute the hash H(R || P || m)
-        let mut hasher = Sha512::new();
-        hasher.update(signature.R.into_affine().to_string().as_bytes());
-        hasher.update(P.into_affine().to_string().as_bytes());
-        hasher.update(message);
-        let hash_output = hasher.finalize_reset().to_vec();
-        let hash_output =
-            ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
+    // lhs is g^s
+    let lhs = g * signature.s;
 
-        // lhs is g^s
-        let lhs = g * signature.s;
+    // rhs is R * (g^e) where e = H(R || P || m)
+    let rhs = signature.R + (P * hash_output);
 
-        // rhs is R * (g^e) where e = H(R || P || m)
-        let rhs = signature.R + (P * hash_output);
-
-        // check if g^s == R * (g^e)
-        lhs == rhs
-    }
+    // check if g^s == R * (g^e)
+    lhs == rhs
 }
 
 #[test]
@@ -86,7 +84,7 @@ fn test_signature_verification() {
 
     let signer = Signer::new(ScalarField::from(42u64));
     let signature = signer.sign(message);
-    let is_valid = Verifier::verify(&signature, message, signer.P, signer.g);
+    let is_valid = schnorr_verify(&signature, message, signer.P, signer.g);
 
     assert!(is_valid, "Signature verification failed");
 }

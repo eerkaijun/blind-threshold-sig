@@ -1,4 +1,4 @@
-use crate::{frost::NoncePair, helper::nonce_generate};
+use crate::frost::NoncePair;
 use ark_ed25519::Fr as ScalarField;
 use ark_ff::{AdditiveGroup, Field};
 

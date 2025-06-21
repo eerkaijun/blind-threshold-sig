@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
 
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
-use ark_ff::{AdditiveGroup, PrimeField, UniformRand};
-use ark_std::rand::SeedableRng;
+use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
     helper::{
@@ -95,11 +94,6 @@ pub struct Frost {
 pub struct NoncePair {
     pub hiding: ScalarField,
     pub binding: ScalarField,
-}
-
-struct CommitmentPair {
-    hiding: Element,
-    binding: Element,
 }
 
 impl Frost {
