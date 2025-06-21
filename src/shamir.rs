@@ -1,3 +1,4 @@
+//! This module contains a simple Shamir Secret Sharing implementation used during FROST setup.
 use ark_ed25519::Fr as ScalarField;
 use ark_ff::{AdditiveGroup, Field, UniformRand};
 

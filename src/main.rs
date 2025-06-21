@@ -1,3 +1,7 @@
+//! The main function contains a naive end-to-end flow of the FROST protocol, with the tweaks
+//! suggested in this gist to allow for blind signatures from a collaborative custodian. This
+//! enables the user of the custodian to protect their own privacy as well as possibly have the
+//! option of switching away from this custodian at their own discretion.
 use ark_ed25519::Fr as ScalarField;
 
 use crate::{

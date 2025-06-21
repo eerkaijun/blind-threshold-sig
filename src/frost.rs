@@ -1,3 +1,4 @@
+//! This module implements the [FROST protocol](https://eprint.iacr.org/2020/852.pdf).
 #![allow(non_snake_case)]
 
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};

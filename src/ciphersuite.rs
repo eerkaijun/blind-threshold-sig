@@ -1,3 +1,6 @@
+//! This module implements the hash functions corresponding to the ciphersuite FROST(Ed25519, SHA-512).
+//!
+//! Source: https://www.rfc-editor.org/rfc/rfc9591.html#name-frosted25519-sha-512
 #![allow(non_snake_case)]
 
 use sha2::{Digest, Sha512};
