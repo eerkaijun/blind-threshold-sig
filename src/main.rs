@@ -52,10 +52,7 @@ fn main() {
         .map(|signer| NonZeroScalar::new(signer.get_identifier()))
         .collect();
     let group_commitment = compute_group_commitment(&commitments, binding_factors);
-    let hash_output =
-        compute_challenge(group_commitment, frost_protocol.group_pk, message.to_vec());
-    let challenge =
-        ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
+    let challenge = compute_challenge(group_commitment, frost_protocol.group_pk, message.to_vec());
     let mut signature_shares = Vec::new();
     for signer in frost_protocol.clone().signers {
         let sig_share = signer.sign(ScalarField::from(challenge), &x_coordinates);
