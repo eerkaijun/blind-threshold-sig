@@ -8,15 +8,15 @@ use sha2::{Digest, Sha512};
 /// and a scalar s which is the signature value
 /// s = k + H(R || P || m) * x
 /// where H is a hash function, P is the public key, m is the message, and x is the private key.
-struct SchnorrSignature {
+pub struct SchnorrSignature {
     pub R: G,
     pub s: ScalarField,
 }
 
 struct Signer {
     pub x: ScalarField, // private key
-    pub P: G, // public key
-    pub g: G, // generator of the group (P = g^x)
+    pub P: G,           // public key
+    pub g: G,           // generator of the group (P = g^x)
 }
 
 impl Signer {
@@ -44,7 +44,8 @@ impl Signer {
         hasher.update(self.P.into_affine().to_string().as_bytes());
         hasher.update(message);
         let hash_output = hasher.finalize_reset().to_vec();
-        let hash_output = ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
+        let hash_output =
+            ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
 
         // compute the signature value s = k + H(R || P || m) * x
         let s = k + (hash_output * self.x);
@@ -63,7 +64,8 @@ impl Verifier {
         hasher.update(P.into_affine().to_string().as_bytes());
         hasher.update(message);
         let hash_output = hasher.finalize_reset().to_vec();
-        let hash_output = ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
+        let hash_output =
+            ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
 
         // lhs is g^s
         let lhs = g * signature.s;
@@ -86,3 +88,4 @@ fn test_signature_verification() {
 
     assert!(is_valid, "Signature verification failed");
 }
+
