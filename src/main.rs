@@ -11,7 +11,6 @@ pub mod helper;
 pub mod schnorr;
 pub mod shamir;
 
-pub mod ciphersuite;
 fn main() {
     println!("Hello, Schnorr!");
 
