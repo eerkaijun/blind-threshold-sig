@@ -2,7 +2,7 @@ use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
 use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
-    helper::{BindingFactor, Commitment, compute_binding_factors, compute_group_commitment},
+    helper::{compute_binding_factors, compute_group_commitment, derive_interpolating_value, BindingFactor, Commitment, NonZeroScalar},
     schnorr::SchnorrSignature,
 };
 
@@ -46,6 +46,11 @@ impl Signer {
         let (_, rho) = binding_factors[self.identifier];
         self.rho = rho;
     }
+
+    pub fn sign(&self, challenge: ScalarField, x_coordinates: &[NonZeroScalar]) -> ScalarField {
+        let lambda = derive_interpolating_value(x_coordinates, NonZeroScalar::new(ScalarField::from(self.x)));
+        self.d + (self.rho * self.e) + (lambda * self.x * challenge)
+    } 
 }
 
 struct Frost {}
