@@ -24,9 +24,9 @@ pub fn H2(m: Vec<u8>) -> Vec<u8> {
     return output.to_vec();
 }
 
-pub fn H3(m: Vec<u8>) -> Vec<u8>{
+pub fn H3(m: Vec<u8>) -> Vec<u8> {
     let mut hasher = Sha512::new();
-    
+
     hasher.update(CONTEXT_STRING);
     hasher.update(b"nonce");
     hasher.update(m);
