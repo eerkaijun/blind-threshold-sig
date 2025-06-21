@@ -35,7 +35,7 @@ pub struct FrostSigner {
 }
 
 impl FrostSigner {
-    pub fn new(index: usize, x: ScalarField, g: Element) -> Self {
+    pub fn new(index: usize, x: ScalarField, g: Element, is_blind: bool) -> Self {
         let mut seed = [0u8; 32];
         let index_bytes = index.to_le_bytes();
         seed[..index_bytes.len()].copy_from_slice(&index_bytes);
@@ -47,7 +47,10 @@ impl FrostSigner {
         let D = g * d;
 
         // generate a binding nonce e and its commitment E
-        let e = ScalarField::rand(&mut rng);
+        let mut e = ScalarField::ZERO;
+        if !is_blind {
+            e = ScalarField::rand(&mut rng);
+        }
         let E = g * e;
 
         Self {
@@ -109,7 +112,11 @@ impl Frost {
         let signers = shamir_shares
             .iter()
             .map(|shamir_share| {
-                FrostSigner::new(shamir_share.index, shamir_share.secret, generator)
+                let mut is_blind = false;
+                if shamir_share.index > threshold {
+                    is_blind = true; // set a few signers to be blind
+                }
+                FrostSigner::new(shamir_share.index, shamir_share.secret, generator, is_blind)
             })
             .collect();
 

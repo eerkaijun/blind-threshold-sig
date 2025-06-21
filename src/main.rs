@@ -17,7 +17,7 @@ pub mod schnorr;
 pub mod shamir;
 
 fn main() {
-    println!("Hello, Schnorr!");
+    println!("Hello, Blind Schnorr!");
 
     let message = b"asia is underrated";
 
