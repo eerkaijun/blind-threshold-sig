@@ -52,7 +52,7 @@ pub fn shamir_reconstruct(shares: &[ShamirShare]) -> ScalarField {
             j,
             ShamirShare {
                 index: x_j,
-                secret: y_j,
+                secret: _,
             },
         ) in shares.iter().enumerate()
         {

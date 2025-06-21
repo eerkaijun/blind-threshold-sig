@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use ark_ec::CurveGroup;
 use ark_ed25519::{EdwardsProjective as G, Fr as ScalarField};
 use ark_ff::{Field, UniformRand};

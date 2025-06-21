@@ -7,6 +7,7 @@ use crate::{
         Commitment, NonZeroScalar, compute_binding_factors, compute_challenge,
         compute_group_commitment,
     },
+    schnorr::SchnorrSignature,
 };
 
 pub mod ciphersuite;
@@ -62,10 +63,13 @@ fn main() {
 
     // Step5: The coordinator aggregates the signature shares to produce a signature
     // TODO: we only need to aggregate threshold number of shares, not all
-    let signature =
-        frost_protocol.signature_aggregate(commitments, message.to_vec(), signature_shares);
+    let signature = frost_protocol.signature_aggregate(signature_shares);
+    let schnorr_signature = SchnorrSignature {
+        R: group_commitment,
+        s: signature,
+    };
 
     // Step6: The coordinator verifies the signature
-    let verification_result = frost_protocol.verify(signature, challenge);
+    let verification_result = frost_protocol.verify(schnorr_signature, challenge);
     println!("Signature verification result: {}", verification_result);
 }

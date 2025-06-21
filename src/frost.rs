@@ -1,12 +1,11 @@
-use ark_ec::PrimeGroup;
+#![allow(non_snake_case)]
+
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
 use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
     helper::{
-        BindingFactor, Commitment, NonZeroScalar, binding_factor_for_participant,
-        compute_binding_factors, compute_group_commitment, derive_interpolating_value,
-        nonce_generate,
+        BindingFactor, NonZeroScalar, binding_factor_for_participant, derive_interpolating_value,
     },
     schnorr::SchnorrSignature,
     shamir::shamir_split,
@@ -23,10 +22,8 @@ pub struct NonceCommitment {
 #[derive(Debug, Copy, Clone)]
 pub struct FrostSigner {
     identifier: ScalarField, // unique identifier for the signer
-    index: usize,            // index in the list of signers
 
     x: ScalarField, // secret share
-    g: Element,     // generator of the group
 
     d: ScalarField, // hiding nonce
     e: ScalarField, // binding nonce
@@ -51,9 +48,7 @@ impl FrostSigner {
 
         Self {
             identifier,
-            index,
             x,
-            g,
             d,
             e,
             commitment: NonceCommitment { D, E },
@@ -89,38 +84,7 @@ pub struct Frost {
     pub group_pk: Element, // public key of the group
 }
 
-struct NoncePair {
-    hiding: ScalarField,
-    binding: ScalarField,
-}
-
-struct CommitmentPair {
-    hiding: Element,
-    binding: Element,
-}
-
 impl Frost {
-    /// Generates and returns a participant's hiding and binding nonces and their commitments in
-    /// a `NoncePair` and a `CommitmentPair` tuple.
-    pub fn commit(sk_i: ScalarField) -> (NoncePair, CommitmentPair) {
-        let hiding_nonce = nonce_generate(sk_i);
-        let binding_nonce = nonce_generate(sk_i);
-
-        let hiding_nonce_commitment = Element::generator() * hiding_nonce;
-        let binding_nonce_commitment = Element::generator() * binding_nonce;
-
-        return (
-            NoncePair {
-                hiding: hiding_nonce,
-                binding: binding_nonce,
-            },
-            CommitmentPair {
-                hiding: hiding_nonce_commitment,
-                binding: binding_nonce_commitment,
-            },
-        );
-    }
-
     pub fn signature_share(threshold: usize, total_signers: usize) -> Self {
         let mut rng = ark_std::test_rng();
         let secret_key = ScalarField::rand(&mut rng);
@@ -153,25 +117,14 @@ impl Frost {
     }
 
     /// Coordinator aggregates each share to produce a final `SchnorrSignature`.
-    pub fn signature_aggregate(
-        &self,
-        commitment_list: Vec<Commitment>,
-        msg: Vec<u8>,
-        sig_shares: Vec<ScalarField>,
-    ) -> SchnorrSignature {
-        let binding_factor_list = compute_binding_factors(self.group_pk, &commitment_list, msg);
-        let group_commitment = compute_group_commitment(&commitment_list, binding_factor_list);
-
+    pub fn signature_aggregate(&self, sig_shares: Vec<ScalarField>) -> ScalarField {
         let mut z = ScalarField::ZERO;
 
         for z_i in sig_shares {
             z += z_i;
         }
 
-        return SchnorrSignature {
-            R: group_commitment,
-            s: z,
-        };
+        z
     }
 
     pub fn verify(&self, signature: SchnorrSignature, challenge: ScalarField) -> bool {

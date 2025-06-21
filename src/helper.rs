@@ -1,4 +1,4 @@
-use ark_ec::{AdditiveGroup, PrimeGroup};
+use ark_ec::AdditiveGroup;
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
 use ark_ff::{Field, PrimeField};
 use ark_serialize::CanonicalSerialize;
