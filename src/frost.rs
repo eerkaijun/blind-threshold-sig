@@ -1,10 +1,52 @@
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
-use ark_ff::AdditiveGroup;
+use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
-    helper::{Commitment, compute_binding_factors, compute_group_commitment},
+    helper::{BindingFactor, Commitment, compute_binding_factors, compute_group_commitment},
     schnorr::SchnorrSignature,
 };
+
+struct NonceCommitment {
+    D: Element, // commitment for hiding nonce
+    E: Element, // commitment for binding nonce
+}
+
+/// Each signer has a secret share and can generate a signature share
+/// Each signer will generate a hiding nonce and a binding nonce
+struct Signer {
+    identifier: usize, // unique identifier for the signer
+
+    x: ScalarField, // secret share
+    g: Element, // generator of the group
+
+    d: ScalarField, // hiding nonce
+    e: ScalarField, // binding nonce
+
+    commitment: NonceCommitment,
+
+    rho: ScalarField, // binding factor
+}
+
+impl Signer {
+    pub fn new(&self, identifier: usize, x: ScalarField, g: Element) -> Self {
+        let mut rng = ark_std::test_rng();
+        
+        // generate a hiding nonce d and its commitment D
+        let d = ScalarField::rand(&mut rng);
+        let D = self.g * d;
+
+        // generate a binding nonce e and its commitment E
+        let e = ScalarField::rand(&mut rng);
+        let E = self.g * e;
+
+        Self { identifier, x, g, d, e, commitment: NonceCommitment { D, E }, rho: ScalarField::ZERO }
+    }
+
+    pub fn store_rho(&mut self, binding_factors: Vec<BindingFactor>) {
+        let (_, rho) = binding_factors[self.identifier];
+        self.rho = rho;
+    }
+}
 
 struct Frost {}
 

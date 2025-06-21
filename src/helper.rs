@@ -27,7 +27,7 @@ pub struct NonZeroScalar(ScalarField);
 
 type NonceCommitment = Element;
 
-type BindingFactor = (NonZeroScalar, ScalarField);
+pub type BindingFactor = (NonZeroScalar, ScalarField);
 
 /// A Commitment is a tuple of (NonZeroScalar, NonceCommitment, NonceCommitment)
 pub type Commitment = (NonZeroScalar, NonceCommitment, NonceCommitment);
