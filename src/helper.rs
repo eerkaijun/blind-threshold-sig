@@ -195,7 +195,6 @@ pub fn compute_challenge(
         .unwrap();
     let challenge_input = [group_commitment_encoded_bytes, group_pk_encoded_bytes, msg].concat();
     let challenge_bytes = H2(challenge_input);
-    let challenge = ScalarField::from_le_bytes_mod_order(&challenge_bytes);
 
-    challenge
+    ScalarField::from_le_bytes_mod_order(&challenge_bytes)
 }
