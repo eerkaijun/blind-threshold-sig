@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use sha2::{Digest, Sha512};
 
 pub const CONTEXT_STRING: &'static str = "FROST-ED25519-SHA512-v1";

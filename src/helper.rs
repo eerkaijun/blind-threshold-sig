@@ -2,7 +2,6 @@ use ark_ec::{AdditiveGroup, PrimeGroup};
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
 use ark_ff::{Field, PrimeField};
 use ark_serialize::CanonicalSerialize;
-use ark_std::{UniformRand, Zero, ops::Mul};
 
 use crate::ciphersuite::{H1, H2, H4, H5};
 
