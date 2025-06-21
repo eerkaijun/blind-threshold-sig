@@ -18,7 +18,7 @@ use crate::ciphersuite::{H1, H2, H4, H5};
 ///  random_bytes = random_bytes(32)
 ///  secret_enc = G.SerializeScalar(secret)
 ///  return H3(random_bytes || secret_enc)
-fn nonce_generate(_secret: ScalarField) -> ScalarField {
+pub fn nonce_generate(_secret: ScalarField) -> ScalarField {
     unimplemented!();
 }
 

@@ -1,8 +1,12 @@
+use ark_ec::PrimeGroup;
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
 use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
-    helper::{compute_binding_factors, compute_group_commitment, derive_interpolating_value, BindingFactor, Commitment, NonZeroScalar},
+    helper::{
+        BindingFactor, Commitment, NonZeroScalar, compute_binding_factors,
+        compute_group_commitment, derive_interpolating_value, nonce_generate,
+    },
     schnorr::SchnorrSignature,
 };
 
@@ -17,7 +21,7 @@ struct FrostSigner {
     identifier: usize, // unique identifier for the signer
 
     x: ScalarField, // secret share
-    g: Element, // generator of the group
+    g: Element,     // generator of the group
 
     d: ScalarField, // hiding nonce
     e: ScalarField, // binding nonce
@@ -30,7 +34,7 @@ struct FrostSigner {
 impl FrostSigner {
     pub fn new(&self, identifier: usize, x: ScalarField, g: Element) -> Self {
         let mut rng = ark_std::test_rng();
-        
+
         // generate a hiding nonce d and its commitment D
         let d = ScalarField::rand(&mut rng);
         let D = self.g * d;
@@ -39,7 +43,15 @@ impl FrostSigner {
         let e = ScalarField::rand(&mut rng);
         let E = self.g * e;
 
-        Self { identifier, x, g, d, e, commitment: NonceCommitment { D, E }, rho: ScalarField::ZERO }
+        Self {
+            identifier,
+            x,
+            g,
+            d,
+            e,
+            commitment: NonceCommitment { D, E },
+            rho: ScalarField::ZERO,
+        }
     }
 
     pub fn store_rho(&mut self, binding_factors: Vec<BindingFactor>) {
@@ -48,15 +60,47 @@ impl FrostSigner {
     }
 
     pub fn sign(&self, challenge: ScalarField, x_coordinates: &[NonZeroScalar]) -> ScalarField {
-        let lambda = derive_interpolating_value(x_coordinates, NonZeroScalar::new(ScalarField::from(self.x)));
+        let lambda = derive_interpolating_value(
+            x_coordinates,
+            NonZeroScalar::new(ScalarField::from(self.x)),
+        );
         self.d + (self.rho * self.e) + (lambda * self.x * challenge)
-    } 
+    }
 }
 
 struct Frost {}
 
+struct NoncePair {
+    hiding: ScalarField,
+    binding: ScalarField,
+}
+
+struct CommitmentPair {
+    hiding: Element,
+    binding: Element,
+}
+
 impl Frost {
-    pub fn commit() {}
+    /// Generates and returns a participant's hiding and binding nonces and their commitments in
+    /// a `NoncePair` and a `CommitmentPair` tuple.
+    pub fn commit(sk_i: ScalarField) -> (NoncePair, CommitmentPair) {
+        let hiding_nonce = nonce_generate(sk_i);
+        let binding_nonce = nonce_generate(sk_i);
+
+        let hiding_nonce_commitment = Element::generator() * hiding_nonce;
+        let binding_nonce_commitment = Element::generator() * binding_nonce;
+
+        return (
+            NoncePair {
+                hiding: hiding_nonce,
+                binding: binding_nonce,
+            },
+            CommitmentPair {
+                hiding: hiding_nonce_commitment,
+                binding: binding_nonce_commitment,
+            },
+        );
+    }
 
     pub fn signature_share() {}
 
@@ -86,4 +130,3 @@ impl Frost {
 }
 
 pub fn sign_signature_share(secret_share: ScalarField, challenge: ScalarField) {}
-
