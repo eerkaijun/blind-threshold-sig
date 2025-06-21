@@ -13,7 +13,7 @@ struct NonceCommitment {
 
 /// Each signer has a secret share and can generate a signature share
 /// Each signer will generate a hiding nonce and a binding nonce
-struct Signer {
+struct FrostSigner {
     identifier: usize, // unique identifier for the signer
 
     x: ScalarField, // secret share
@@ -27,7 +27,7 @@ struct Signer {
     rho: ScalarField, // binding factor
 }
 
-impl Signer {
+impl FrostSigner {
     pub fn new(&self, identifier: usize, x: ScalarField, g: Element) -> Self {
         let mut rng = ark_std::test_rng();
         
