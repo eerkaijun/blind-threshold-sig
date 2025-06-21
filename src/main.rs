@@ -1,5 +1,4 @@
 use ark_ed25519::Fr as ScalarField;
-use ark_ff::Field;
 
 use crate::{
     frost::Frost,

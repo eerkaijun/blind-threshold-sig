@@ -6,7 +6,7 @@ use rand::RngCore;
 
 use crate::ciphersuite::{H1, H2, H3, H4, H5};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NonZeroScalar(ScalarField);
 
 impl NonZeroScalar {
@@ -57,14 +57,6 @@ pub fn derive_interpolating_value(
     x_coordinates: &[NonZeroScalar],
     x_i: NonZeroScalar,
 ) -> ScalarField {
-    if !x_coordinates.contains(&x_i) {
-        panic!("Invalid parameters")
-    };
-
-    if x_coordinates.iter().filter_map(|x| Some(x == &x_i)).count() > 1 {
-        panic!("Invalid parameters")
-    }
-
     let mut numerator = ScalarField::ONE;
     let mut denominator = ScalarField::ONE;
 

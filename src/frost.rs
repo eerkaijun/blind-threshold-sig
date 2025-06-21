@@ -2,6 +2,7 @@
 
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
 use ark_ff::{AdditiveGroup, UniformRand};
+use ark_std::rand::SeedableRng;
 
 use crate::{
     helper::{
@@ -35,7 +36,10 @@ pub struct FrostSigner {
 
 impl FrostSigner {
     pub fn new(index: usize, x: ScalarField, g: Element) -> Self {
-        let mut rng = ark_std::test_rng();
+        let mut seed = [0u8; 32];
+        let index_bytes = index.to_le_bytes();
+        seed[..index_bytes.len()].copy_from_slice(&index_bytes);
+        let mut rng = ark_std::rand::rngs::StdRng::from_seed(seed);
         let identifier = ScalarField::from(index as u64);
 
         // generate a hiding nonce d and its commitment D
@@ -63,7 +67,7 @@ impl FrostSigner {
     pub fn sign(&self, challenge: ScalarField, x_coordinates: &[NonZeroScalar]) -> ScalarField {
         let lambda = derive_interpolating_value(
             x_coordinates,
-            NonZeroScalar::new(ScalarField::from(self.x)),
+            NonZeroScalar::new(ScalarField::from(self.identifier)),
         );
         self.d + (self.rho * self.e) + (lambda * self.x * challenge)
     }
