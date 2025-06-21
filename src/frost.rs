@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
-use ark_ff::{AdditiveGroup, UniformRand};
 
 use crate::{
     helper::{
@@ -16,6 +15,11 @@ pub struct NonceCommitment {
     pub D: Element, // commitment for hiding nonce
     pub E: Element, // commitment for binding nonce
 }
+
+use ark_ff::{AdditiveGroup, UniformRand, Field, PrimeField};
+
+
+
 
 /// Each signer has a secret share and can generate a signature share
 /// Each signer will generate a hiding nonce and a binding nonce

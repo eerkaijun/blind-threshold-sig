@@ -28,8 +28,8 @@ pub fn H3(m: Vec<u8>) -> Vec<u8>{
     let mut hasher = Sha512::new();
     
     hasher.update(CONTEXT_STRING);
-    hash.update(b"nonce");
-    hash.update(m);
+    hasher.update(b"nonce");
+    hasher.update(m);
 
     let output = hasher.finalize();
     return output.to_vec();
