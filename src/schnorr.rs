@@ -1,5 +1,7 @@
+use ark_ec::CurveGroup;
 use ark_ed25519::{EdwardsProjective as G, Fr as ScalarField};
-use ark_ff::{AdditiveGroup, Field, UniformRand};
+use ark_ff::{Field, UniformRand};
+use sha2::{Digest, Sha512};
 
 /// A Schnorr signature contains a point R which is commitment of nonce k
 /// R = g^k where g is the generator of the group,
@@ -37,8 +39,12 @@ impl Signer {
         let R = self.g * k;
 
         // compute the hash H(R || P || m)
-        // TODO: just a placeholder right now, replace with actual hash function
-        let hash_output = ScalarField::ONE;
+        let mut hasher = Sha512::new();
+        hasher.update(R.into_affine().to_string().as_bytes());
+        hasher.update(self.P.into_affine().to_string().as_bytes());
+        hasher.update(message);
+        let hash_output = hasher.finalize_reset().to_vec();
+        let hash_output = ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
 
         // compute the signature value s = k + H(R || P || m) * x
         let s = k + (hash_output * self.x);
@@ -52,13 +58,17 @@ struct Verifier {}
 impl Verifier {
     pub fn verify(signature: &SchnorrSignature, message: &[u8], P: G, g: G) -> bool {
         // compute the hash H(R || P || m)
-        let hash_output = ScalarField::ONE;
+        let mut hasher = Sha512::new();
+        hasher.update(signature.R.into_affine().to_string().as_bytes());
+        hasher.update(P.into_affine().to_string().as_bytes());
+        hasher.update(message);
+        let hash_output = hasher.finalize_reset().to_vec();
+        let hash_output = ScalarField::from_random_bytes(&hash_output).expect("failed to convert hash output");
 
         // lhs is g^s
         let lhs = g * signature.s;
 
         // rhs is R * (g^e) where e = H(R || P || m)
-        // TODO: just a placeholder right now, replace with actual hash function
         let rhs = signature.R + (P * hash_output);
 
         // check if g^s == R * (g^e)
