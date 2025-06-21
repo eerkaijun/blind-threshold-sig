@@ -84,6 +84,16 @@ pub struct Frost {
     pub group_pk: Element, // public key of the group
 }
 
+pub struct NoncePair {
+    pub hiding: ScalarField,
+    pub binding: ScalarField,
+}
+
+struct CommitmentPair {
+    hiding: Element,
+    binding: Element,
+}
+
 impl Frost {
     pub fn signature_share(threshold: usize, total_signers: usize) -> Self {
         let mut rng = ark_std::test_rng();

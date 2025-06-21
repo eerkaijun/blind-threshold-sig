@@ -11,6 +11,7 @@ use crate::{
 };
 
 pub mod ciphersuite;
+pub mod collaborative;
 pub mod frost;
 pub mod helper;
 pub mod schnorr;
