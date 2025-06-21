@@ -11,14 +11,14 @@ use crate::{
     shamir::shamir_split,
 };
 
-struct NonceCommitment {
-    D: Element, // commitment for hiding nonce
-    E: Element, // commitment for binding nonce
+pub struct NonceCommitment {
+    pub D: Element, // commitment for hiding nonce
+    pub E: Element, // commitment for binding nonce
 }
 
 /// Each signer has a secret share and can generate a signature share
 /// Each signer will generate a hiding nonce and a binding nonce
-struct FrostSigner {
+pub struct FrostSigner {
     identifier: ScalarField, // unique identifier for the signer
     index: usize,            // index in the list of signers
 
@@ -70,11 +70,15 @@ impl FrostSigner {
         );
         self.d + (self.rho * self.e) + (lambda * self.x * challenge)
     }
+
+    pub fn get_nonce_commitment(&self) -> &NonceCommitment {
+        &self.commitment
+    }
 }
 
-struct Frost {
-    signers: Vec<FrostSigner>,
-    group_pk: Element, // public key of the group
+pub struct Frost {
+    pub signers: Vec<FrostSigner>,
+    pub group_pk: Element, // public key of the group
 }
 
 struct NoncePair {
