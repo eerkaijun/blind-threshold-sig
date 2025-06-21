@@ -23,14 +23,14 @@ fn nonce_generate(_secret: ScalarField) -> ScalarField {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-struct NonZeroScalar(ScalarField);
+pub struct NonZeroScalar(ScalarField);
 
 type NonceCommitment = Element;
 
 type BindingFactor = (NonZeroScalar, ScalarField);
 
 /// A Commitment is a tuple of (NonZeroScalar, NonceCommitment, NonceCommitment)
-type Commitment = (NonZeroScalar, NonceCommitment, NonceCommitment);
+pub type Commitment = (NonZeroScalar, NonceCommitment, NonceCommitment);
 
 impl NonZeroScalar {
     pub fn new(value: ScalarField) -> Self {
@@ -50,7 +50,10 @@ impl NonZeroScalar {
 /// `x_coordinates`.
 ///
 /// Reference: https://www.rfc-editor.org/rfc/rfc9591.html#section-4.2
-fn derive_interpolating_value(x_coordinates: &[NonZeroScalar], x_i: NonZeroScalar) -> ScalarField {
+pub fn derive_interpolating_value(
+    x_coordinates: &[NonZeroScalar],
+    x_i: NonZeroScalar,
+) -> ScalarField {
     if !x_coordinates.contains(&x_i) {
         panic!("Invalid parameters")
     };
@@ -81,7 +84,7 @@ fn derive_interpolating_value(x_coordinates: &[NonZeroScalar], x_i: NonZeroScala
 /// Panics if serialization fails.
 ///
 /// Reference: https://www.rfc-editor.org/rfc/rfc9591.html#section-4.3
-fn encode_group_commitment_list(commitment_list: &[Commitment]) -> Vec<u8> {
+pub fn encode_group_commitment_list(commitment_list: &[Commitment]) -> Vec<u8> {
     let mut encoded = vec![];
 
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list {
@@ -115,7 +118,7 @@ fn encode_group_commitment_list(commitment_list: &[Commitment]) -> Vec<u8> {
 }
 
 /// Extracts and returns a list of identifiers `Vec<NonZeroScalar>` from a `commitment list`.
-fn participants_from_commitment_list(commitment_list: &[Commitment]) -> Vec<NonZeroScalar> {
+pub fn participants_from_commitment_list(commitment_list: &[Commitment]) -> Vec<NonZeroScalar> {
     let mut identifiers: Vec<NonZeroScalar> = Vec::with_capacity(commitment_list.len());
     for (i, _, _) in commitment_list.iter() {
         identifiers.push(*i);
@@ -126,7 +129,7 @@ fn participants_from_commitment_list(commitment_list: &[Commitment]) -> Vec<NonZ
 
 /// Extracts and returns a `BindingFactor` from a `Vec<BindingFactor>` given a `NonZeroScalar`
 /// identifier.
-fn binding_factor_for_participant(
+pub fn binding_factor_for_participant(
     binding_factor_list: &[BindingFactor],
     identifier: NonZeroScalar,
 ) -> ScalarField {
@@ -141,7 +144,7 @@ fn binding_factor_for_participant(
 /// the group public key `group_pk`.
 ///
 /// Reference: https://www.rfc-editor.org/rfc/rfc9591.html#section-4.4
-fn compute_binding_factors(
+pub fn compute_binding_factors(
     group_pk: Element,
     commitment_list: &[Commitment],
     msg: Vec<u8>,
@@ -174,7 +177,7 @@ fn compute_binding_factors(
     return binding_factor_list;
 }
 
-fn compute_group_commitment(
+pub fn compute_group_commitment(
     commitment_list: &[Commitment],
     binding_factor_list: Vec<BindingFactor>,
 ) -> Element {
@@ -191,7 +194,7 @@ fn compute_group_commitment(
     return group_commitment;
 }
 
-fn compute_challenge(group_commitment: Element, group_pk: Element, msg: Vec<u8>) -> Vec<u8> {
+pub fn compute_challenge(group_commitment: Element, group_pk: Element, msg: Vec<u8>) -> Vec<u8> {
     let mut group_commitment_encoded_bytes = Vec::new();
     let mut group_pk_encoded_bytes = Vec::new();
 
