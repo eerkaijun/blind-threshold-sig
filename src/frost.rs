@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
 
 use ark_ed25519::{EdwardsProjective as Element, Fr as ScalarField};
-use ark_ff::{AdditiveGroup, UniformRand};
+use ark_ff::{AdditiveGroup, PrimeField, UniformRand};
 use ark_std::rand::SeedableRng;
 
 use crate::{
     helper::{
         BindingFactor, NonZeroScalar, binding_factor_for_participant, derive_interpolating_value,
+        nonce_generate,
     },
     schnorr::SchnorrSignature,
     shamir::shamir_split,
@@ -39,17 +40,16 @@ impl FrostSigner {
         let mut seed = [0u8; 32];
         let index_bytes = index.to_le_bytes();
         seed[..index_bytes.len()].copy_from_slice(&index_bytes);
-        let mut rng = ark_std::rand::rngs::StdRng::from_seed(seed);
         let identifier = ScalarField::from(index as u64);
 
         // generate a hiding nonce d and its commitment D
-        let d = ScalarField::rand(&mut rng);
+        let d = nonce_generate(x);
         let D = g * d;
 
         // generate a binding nonce e and its commitment E
         let mut e = ScalarField::ZERO;
         if !is_blind {
-            e = ScalarField::rand(&mut rng);
+            e = nonce_generate(x);
         }
         let E = g * e;
 
