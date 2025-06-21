@@ -8,6 +8,7 @@ use crate::{
         compute_group_commitment, derive_interpolating_value, nonce_generate,
     },
     schnorr::SchnorrSignature,
+    shamir::shamir_split,
 };
 
 struct NonceCommitment {
@@ -18,7 +19,8 @@ struct NonceCommitment {
 /// Each signer has a secret share and can generate a signature share
 /// Each signer will generate a hiding nonce and a binding nonce
 struct FrostSigner {
-    identifier: usize, // unique identifier for the signer
+    identifier: ScalarField, // unique identifier for the signer
+    index: usize,            // index in the list of signers
 
     x: ScalarField, // secret share
     g: Element,     // generator of the group
@@ -32,19 +34,21 @@ struct FrostSigner {
 }
 
 impl FrostSigner {
-    pub fn new(&self, identifier: usize, x: ScalarField, g: Element) -> Self {
+    pub fn new(index: usize, x: ScalarField, g: Element) -> Self {
         let mut rng = ark_std::test_rng();
+        let identifier = ScalarField::from(index as u64);
 
         // generate a hiding nonce d and its commitment D
         let d = ScalarField::rand(&mut rng);
-        let D = self.g * d;
+        let D = g * d;
 
         // generate a binding nonce e and its commitment E
         let e = ScalarField::rand(&mut rng);
-        let E = self.g * e;
+        let E = g * e;
 
         Self {
             identifier,
+            index,
             x,
             g,
             d,
@@ -55,7 +59,7 @@ impl FrostSigner {
     }
 
     pub fn store_rho(&mut self, binding_factors: Vec<BindingFactor>) {
-        let (_, rho) = binding_factors[self.identifier];
+        let (_, rho) = binding_factors[self.index];
         self.rho = rho;
     }
 
@@ -68,7 +72,10 @@ impl FrostSigner {
     }
 }
 
-struct Frost {}
+struct Frost {
+    signers: Vec<FrostSigner>,
+    group_pk: Element, // public key of the group
+}
 
 struct NoncePair {
     hiding: ScalarField,
@@ -102,7 +109,22 @@ impl Frost {
         );
     }
 
-    pub fn signature_share() {}
+    pub fn signature_share(threshold: usize, total_signers: usize) -> Self {
+        let mut rng = ark_std::test_rng();
+        let secret_key = ScalarField::rand(&mut rng);
+        let generator = Element::rand(&mut rng);
+        let group_pk = generator * secret_key;
+
+        let shamir_shares = shamir_split(secret_key, threshold, total_signers);
+        let signers = shamir_shares
+            .iter()
+            .map(|shamir_share| {
+                FrostSigner::new(shamir_share.index, shamir_share.secret, generator)
+            })
+            .collect();
+
+        Frost { signers, group_pk }
+    }
 
     /// Coordinator aggregates each share to produce a final `SchnorrSignature`.
     pub fn signature_aggregate(
@@ -128,5 +150,3 @@ impl Frost {
 
     pub fn verify() {}
 }
-
-pub fn sign_signature_share(secret_share: ScalarField, challenge: ScalarField) {}

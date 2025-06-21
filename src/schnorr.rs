@@ -88,4 +88,3 @@ fn test_signature_verification() {
 
     assert!(is_valid, "Signature verification failed");
 }
-
