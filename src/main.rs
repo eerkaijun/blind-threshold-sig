@@ -1,3 +1,4 @@
+pub mod frost;
 pub mod schnorr;
 
 fn main() {
