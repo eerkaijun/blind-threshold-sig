@@ -13,7 +13,7 @@ We use FROST (Flexible Round-Optimized Schnorr Threshold Signatures), a threshol
 
 Blinding can be added to FROST by having the blind signer uses public nonce (instead of the private hiding nonce), and the coordinator provides a challenge for the signer to sign with a blind Schnorr signature scheme.
 
-We discuss in more details in this [HackMD document](https://hackmd.io/sFTnuusqTd2UGxZlD61wBQ).
+We discuss in more details in this [HackMD document](https://hackmd.io/@bhbhbh/HJNiCR7Vee).
 
 ### Getting Started
 
