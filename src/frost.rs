@@ -13,26 +13,37 @@ use crate::{
     shamir::shamir_split,
 };
 
+/// A pair of `Element`s which represent the commitments to the hiding nonce and the binding nonce
+/// respectively.
 #[derive(Debug, Copy, Clone)]
 pub struct NonceCommitment {
-    pub D: Element, // commitment for hiding nonce
-    pub E: Element, // commitment for binding nonce
+    /// Commitment for hiding nonce.
+    pub D: Element,
+    /// Commitment for binding nonce.
+    pub E: Element,
 }
 
 /// Each signer has a secret share and can generate a signature share
 /// Each signer will generate a hiding nonce and a binding nonce
 #[derive(Debug, Copy, Clone)]
 pub struct FrostSigner {
-    identifier: ScalarField, // unique identifier for the signer
+    /// Unique identifier for this `FrostSigner`.
+    identifier: ScalarField,
 
-    x: ScalarField, // secret share
+    /// The secret key share that belongs to this `FrostSigner`.
+    x: ScalarField,
 
-    d: ScalarField, // hiding nonce
-    e: ScalarField, // binding nonce
+    /// The hiding nonce.
+    d: ScalarField,
 
+    /// The binding nonce.
+    e: ScalarField,
+
+    /// The `NonceCommitment`, which is a pair of commitments to `d` and `e` respectively.
     commitment: NonceCommitment,
 
-    rho: ScalarField, // binding factor
+    /// The binding factor.
+    rho: ScalarField,
 }
 
 impl FrostSigner {
@@ -64,10 +75,12 @@ impl FrostSigner {
         }
     }
 
+    /// Stores the `binding_factor` locally for use during signing.
     pub fn store_rho(&mut self, binding_factor: ScalarField) {
         self.rho = binding_factor;
     }
 
+    /// Signs and returns a signature share of type `ScalarField`.
     pub fn sign(&self, challenge: ScalarField, x_coordinates: &[NonZeroScalar]) -> ScalarField {
         let lambda = derive_interpolating_value(
             x_coordinates,
@@ -85,19 +98,19 @@ impl FrostSigner {
     }
 }
 
+/// Represents an instance of a FROST protocol.
 #[derive(Debug, Clone)]
 pub struct Frost {
-    pub generator: Element, // generator of the group
+    pub generator: Element,
     pub signers: Vec<FrostSigner>,
-    pub group_pk: Element, // public key of the group
-}
-
-pub struct NoncePair {
-    pub hiding: ScalarField,
-    pub binding: ScalarField,
+    /// public key of the group
+    pub group_pk: Element,
 }
 
 impl Frost {
+    /// Instantiates a new FROST protocol given a `threshold` and `total_signers`.
+    ///
+    /// Shamir secret sharing is done here to generate the secret key shares for the signers.
     pub fn signature_share(threshold: usize, total_signers: usize) -> Self {
         let mut rng = ark_std::test_rng();
         let secret_key = ScalarField::rand(&mut rng);
@@ -133,7 +146,8 @@ impl Frost {
         }
     }
 
-    /// Coordinator aggregates each share to produce a final `SchnorrSignature`.
+    /// Coordinator aggregates each share to produce a final `ScalarField`, which represents the
+    /// Schnorr signature.
     pub fn signature_aggregate(&self, sig_shares: Vec<ScalarField>) -> ScalarField {
         let mut z = ScalarField::ZERO;
 
@@ -144,6 +158,7 @@ impl Frost {
         z
     }
 
+    /// Verifies a given `signature`.
     pub fn verify(&self, signature: SchnorrSignature, challenge: ScalarField) -> bool {
         let lhs = self.generator * signature.s; // g^z
         let rhs = signature.R + self.group_pk * challenge;
